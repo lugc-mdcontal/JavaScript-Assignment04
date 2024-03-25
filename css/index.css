@@ -1,0 +1,8 @@
+/*
+    Everything else is handled by Bootstrap.
+    This centers and makes text nicer.
+*/
+div {
+    font-size: large;
+    text-align: center;
+}
