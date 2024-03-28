@@ -1,31 +1,33 @@
 const API_KEY = "ZDgZcihAnXDiHgjRFTzyqkE1qMmptukT";
-const API_URL = (ticker) => `https://api.polygon.io/v2/aggs/ticker/${ticker}/prev?apiKey=${API_KEY}&interval=1m`;
+const API_URL1 = (ticker) => `https://api.polygon.io/v2/aggs/ticker/${ticker}/prev?apiKey=${API_KEY}&interval=1m`;
+const API_URL2 = (ticker) => `https://api.polygon.io/v1/meta/symbols/${ticker}/company?apiKey=${API_KEY}`;
 
-async function fetchLatestStockPrice(ticker) {
-    // Initiate the API request
-    const response = await fetch(API_URL(ticker));
-    const data = await response.json();
+async function fetchLatestStockInfo(ticker) {
+    // Get stock price data
+    const response = await fetch(API_URL1(ticker));
+    const stockData = await response.json();
 
-    // Check for the errors in the response
-    if (data.error || !data || !data.results || !data.results[0])
-        return alert("There was an error!");
+    // Fetch exchange information
+    const exchangeResponse = await fetch(API_URL2(ticker));
+    const exchangeData = await exchangeResponse.json();
 
-    const out = data.results[0];
-    return data.results[0];
+    return { stockData, exchangeData };
 }
 
-// Register click handler for button
+// Register handler for button async
 document.getElementById("check").addEventListener("click", async () => {
     // Get ticker and check it
     const ticker = document.getElementById("ticker").value;
     if (!ticker)   
-        return alert("You cannot leave the ticker blank.");
+        return alert("Cannot leave the ticker blank!");
 
-    // Request the API for the stock
-    const stock = await fetchLatestStockPrice(ticker);
+    const { stockData, exchangeData } = await fetchLatestStockInfo(ticker);
 
     // Did it work?
-    if (stock) {
+    if (stockData && exchangeData) {
+        // Request the API for the stock
+        const stock = stockData.results[0];
+
         // Set student ID
         document.getElementById("name").innerText = 'Name: Matthew Contaldi | ID: 1227490';
 
@@ -39,8 +41,7 @@ document.getElementById("check").addEventListener("click", async () => {
         document.getElementById("close").innerText = `Close: $${stock.c}`;
         document.getElementById("volume").innerText = `Volume: $${stock.v}`;
 
-        // Speak it (the project says to display the data in another format that isn't just text. This is not text, it's audio)
-        const utterance = new SpeechSynthesisUtterance(`The stock's low is ${stock.l} dollars, and high is ${stock.h} dollars. The stock's open is ${stock.o} dollars, and close is ${stock.c} dollars. Lastly, the stock's volume is ${stock.v} dollars.`);
-        window.speechSynthesis.speak(utterance);
+        // Render image
+        document.getElementById("image").src = `https://logo.clearbit.com/${exchangeData.url}`;
     }
 });
